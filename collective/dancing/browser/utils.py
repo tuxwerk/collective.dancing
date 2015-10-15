@@ -2,6 +2,7 @@ import os
 import pkg_resources
 import tempfile
 
+from pkg_resources import parse_version
 from zope.interface import Interface
 import zc.lockfile
 from Products.Five import BrowserView
@@ -17,7 +18,7 @@ else:
 
 try:
     plone_protect = pkg_resources.get_distribution('plone.protect')
-    if plone_protect.version < 3.0:
+    if parse_version(plone_protect.version) < parse_version('3.0'):
         HAS_PLONE_PROTECT = False
     else:
         HAS_PLONE_PROTECT = True
