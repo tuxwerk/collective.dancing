@@ -1,4 +1,5 @@
 import os
+import pkg_resources
 import tempfile
 
 from zope.interface import Interface
@@ -6,6 +7,22 @@ import zc.lockfile
 from Products.Five import BrowserView
 from collective.singing.channel import channel_lookup
 from collective.dancing import utils
+
+try:
+    pkg_resources.get_distribution('zope.interface')
+except pkg_resources.DistributionNotFound:
+    HAS_ZOPE_INTERFACE = False
+else:
+    HAS_ZOPE_INTERFACE = True
+
+try:
+    plone_protect = pkg_resources.get_distribution('plone.protect')
+    if plone_protect.version < 3.0:
+        HAS_PLONE_PROTECT = False
+    else:
+        HAS_PLONE_PROTECT = True
+except pkg_resources.DistributionNotFound:
+    HAS_PLONE_PROTECT = False
 
 LOCKFILE_NAME = os.path.join(tempfile.gettempdir(),
                              __name__ + '.tick_and_dispatch')
@@ -33,6 +50,12 @@ class DancingUtilsView(BrowserView):
 
     def tick_and_dispatch(self):
         """ """
+        if HAS_ZOPE_INTERFACE and HAS_PLONE_PROTECT:
+            # Disabling CSRF protection
+            from plone.protect.interfaces import IDisableCSRFProtection
+            from zope.interface import alsoProvides
+            alsoProvides(self.request, IDisableCSRFProtection)
+
         try:
             lock = zc.lockfile.LockFile(LOCKFILE_NAME)
         except zc.lockfile.LockError:
