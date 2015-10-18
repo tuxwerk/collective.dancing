@@ -5,12 +5,19 @@ from collective.dancing import utils
 from collective.dancing.browser.sendnewsletter import _assemble_messages
 from plone.app.contentrules.browser.formhelper import AddForm, EditForm
 from plone.contentrules.rule.interfaces import IRuleElementData, IExecutable
-from plone.uuid.interfaces import IUUID
 from zope import schema
 from zope.component import adapts
 from zope.formlib import form
 from zope.interface import Interface, implements
 from zope.site.hooks import getSite
+
+import pkg_resources
+try:
+    pkg_resources.get_distribution('plone.uuid')
+    from plone.uuid.interfaces import IUUID
+    HAS_UUID = True
+except pkg_resources.DistributionNotFound:
+    HAS_UUID = False
 
 import collective.singing
 import logging
@@ -120,7 +127,10 @@ class ChannelActionExecutor(object):
         channel_paths = [channel_path]
         newsletter_path = '/'.join(context.getPhysicalPath())
         try:
-            newsletter_uid = IUUID(context)
+            if HAS_UUID:
+                newsletter_uid = IUUID(context)
+            else:
+                newsletter_uid = context.UID()
         except TypeError:
             # we got a could not adapt error. Object which can't send.
             return False
