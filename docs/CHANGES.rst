@@ -27,6 +27,8 @@ Changelog
   [ivanteoh]
 
 
+- Fix plone.uuid dependency on Plone 4.0
+
 1.0 (2015-05-11)
 ----------------
 
