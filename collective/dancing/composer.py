@@ -36,6 +36,9 @@ import Products.CMFPlone.interfaces
 import collective.singing.interfaces
 import collective.singing.mail
 
+from Products.CMFDefault.utils import checkEmailAddress
+from Products.CMFDefault.exceptions import EmailAddressInvalid
+
 from collective.dancing import MessageFactory as _
 from collective.dancing import transform
 from collective.dancing import utils
@@ -50,7 +53,6 @@ logger = logging.getLogger('collective.singing')
 
 class InvalidEmailAddress(schema.ValidationError):
     _(u"Your e-mail address is invalid")
-    regex = r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"
 
 def check_email(value):
     """
@@ -76,14 +78,10 @@ def check_email(value):
       >>> t('tmog@localhost')
       False
 
-    We also do not accept capitals.
+    Capitals are ok.
 
-      >>> t('TMOG@domain.TLD')
-      False
-      >>> t('Tmog@domain.tld')
-      False
-      >>> t('TMOG@DOMAIN.TLD')
-      False
+      >>> t('TMOG@Domain.tld')
+      True
 
     This passed with the old regex.
 
@@ -105,10 +103,11 @@ def check_email(value):
       False
 
     """
-    if not re.match(InvalidEmailAddress.regex, value):
-        raise InvalidEmailAddress
-    # Lazy: Not adding this final check to the regexp.
-    return not value.endswith('.')
+    try:
+        checkEmailAddress(value)
+    except EmailAddressInvalid:
+        raise InvalidEmailAddress(value)
+    return True
 
 class PrimaryLabelTextLine(schema.TextLine):
     interface.implements(collective.singing.interfaces.ISubscriptionKey,
