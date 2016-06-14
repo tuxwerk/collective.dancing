@@ -262,9 +262,12 @@ class HTMLComposer(persistent.Persistent):
 
         # This is so brittle, it hurts my eyes.  Someone convince me
         # that this needs to become another component:
+        site_path = site.getPhysicalPath()
         for index, item in enumerate(items):
             formatted, original = item
             title = getattr(original, 'Title', lambda: formatted)()
+            url = "/".join(original.getPhysicalPath()[len(site_path):])
+            vars['item%s_url' % index] = url
             vars['item%s_title' % index] = title
 
         vars.update(self._more_vars(subscription, items))
