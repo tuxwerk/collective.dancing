@@ -40,7 +40,13 @@ from collective.dancing import logger
 from collective.dancing import MessageFactory as _
 from Products.statusmessages.interfaces import IStatusMessage
 
-from plone.uuid.interfaces import IUUID
+import pkg_resources
+try:
+    pkg_resources.get_distribution('plone.uuid')
+    from plone.uuid.interfaces import IUUID
+    HAS_UUID = True
+except pkg_resources.DistributionNotFound:
+    HAS_UUID = False
 
 from collective.singing.channel import channel_lookup
 
@@ -124,7 +130,10 @@ class SendForm(form.Form):
         path = data["channel_and_collector"][0]
         channel_paths = [path]
         newsletter_path = "/".join(context.getPhysicalPath())
-        newsletter_uid = IUUID(context)
+        if HAS_UUID:
+            newsletter_uid = IUUID(context)
+        else:
+            newsletter_uid = context.UID()
         include_collector_items = data['include_collector_items']
         override_vars = self.get_override_vars()
 
