@@ -453,6 +453,22 @@ def plone_html_strip(html, not_likey=plone_html_strip_not_likey):
             item.extract() # meaning: item.bye()
     return content.renderContents(encoding=None) # meaning: as unicode
 
+def image_align_compatibility(html):
+    r"""Add image alignment and spacing for broken outlook 07/10/13
+    """
+    if not isinstance(html, unicode):
+        html = unicode(html, 'UTF-8')
+    soup = BeautifulSoup(html)
+    for image in soup.findAll('img', attrs={'class': 'image-left'}):
+        image.attrs.append(('align', 'left'))
+        image.attrs.append(('hspace', '3'))
+        image.attrs.append(('vspace', '3'))
+    for image in soup.findAll('img', attrs={'class': 'image-right'}):
+        image.attrs.append(('align', 'right'))
+        image.attrs.append(('hspace', '3'))
+        image.attrs.append(('vspace', '3'))
+    return soup.renderContents(encoding=None) # meaning: as unicode
+
 class CMFDublinCoreHTMLFormatter(object):
     """Render a brief representation of an IBaseContent for HTML.
     """
@@ -499,7 +515,7 @@ class PloneCallHTMLFormatter(object):
             # is a view, we can try a little harder...
             html = self.item.unrestrictedTraverse(self.item.getLayout())()
         if 'kss' in html:
-            return plone_html_strip(html)
+            return image_align_compatibility(plone_html_strip(html))
         else:
             return html
 
