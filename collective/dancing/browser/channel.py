@@ -493,13 +493,14 @@ class ExportCSV(BrowserView):
         for format in self.context.composers.keys():
             composers_keys = field.Fields(
                 self.context.composers[format].schema).keys()
+            composers_keys += ['pending', 'date', 'format', 'languages']
             # add csv header row
             writer.writerow(composers_keys + ['section'] * len(collectors_keys))
             for subscription in tuple(
                     self.context.subscriptions.query(format=format)):
                 row = []
                 for item in composers_keys:
-                    v = subscription.composer_data.get(item) or ''
+                    v = subscription.composer_data.get(item) or subscription.metadata.get(item) or ''
                     row.append(self._convertValue(v, charset))
                 selected_collectors = {}
                 if 'selected_collectors' in subscription.collector_data:
